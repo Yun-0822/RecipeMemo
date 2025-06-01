@@ -90,6 +90,13 @@ public class RecipeService {
         recipe.setSteps(dto.getSteps());
 
         if (imageFile != null && !imageFile.isEmpty()) {
+            // 기존 이미지 삭제
+            if (recipe.getImageUrl() != null) {
+                Path oldImagePath = Paths.get(recipe.getImageUrl().substring(1)); // "/uploads/..." → "uploads/..."
+                Files.deleteIfExists(oldImagePath);
+            }
+
+            // 새 이미지 저장
             String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
             Path imageDir = Paths.get("uploads");
             Files.createDirectories(imageDir);
@@ -105,6 +112,16 @@ public class RecipeService {
     public void deleteRecipe(Long id) {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("레시피를 찾을 수 없습니다."));
+
+        // 이미지 파일 삭제
+        if (recipe.getImageUrl() != null) {
+            Path imagePath = Paths.get(recipe.getImageUrl().substring(1)); // "/uploads/..." → "uploads/..."
+            try {
+                Files.deleteIfExists(imagePath);
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 파일 삭제 실패: " + e.getMessage());
+            }
+        }
         recipeRepository.delete(recipe);
     }
 

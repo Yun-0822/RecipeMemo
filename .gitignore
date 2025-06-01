@@ -37,7 +37,7 @@ out/
 .vscode/
 
 # application.properties 파일 무시
-src/main/resources/application.properties
-
+.properties
+.yml
 # 업로드된 이미지 폴더 무시
 uploads/

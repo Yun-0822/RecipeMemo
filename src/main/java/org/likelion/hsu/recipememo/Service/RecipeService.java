@@ -125,7 +125,7 @@ public class RecipeService {
                 throw new RuntimeException("이미지 파일 삭제 실패: " + e.getMessage());
             }
         }
-        recipeRepository.delete(recipe); //마지막으로 DB에서 해당 레시피를 삭제합니다.
+        recipeRepository.delete(recipe); //마지막으로 DB에서 해당 레시피를 삭제.
     }
     //실제로 서버 디렉토리에 있는 이미지를 물리적으로 삭제.
     //deleteIfExists는 이미지 파일이 존재하면 삭제, 존재하지 않아도 예외 없이 넘어감.

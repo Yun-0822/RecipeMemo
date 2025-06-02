@@ -90,6 +90,15 @@ public class RecipeService {
         recipe.setSteps(dto.getSteps());
 
         if (imageFile != null && !imageFile.isEmpty()) {
+            // 기존 이미지 삭제
+            if (recipe.getImageUrl() != null) {
+                //이 조건은 기존에 이미지가 저장되어 있었는지 확인.
+                //예: imageUrl이 /uploads/abcd1234_김치찌개.jpg 와 같은 경로일 경우에만 삭제 시도.
+                Path oldImagePath = Paths.get(recipe.getImageUrl().substring(1)); // "/uploads/..." → "uploads/..."
+                Files.deleteIfExists(oldImagePath);
+            }
+
+            // 새 이미지 저장
             String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
             Path imageDir = Paths.get("uploads");
             Files.createDirectories(imageDir);
@@ -105,8 +114,22 @@ public class RecipeService {
     public void deleteRecipe(Long id) {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("레시피를 찾을 수 없습니다."));
-        recipeRepository.delete(recipe);
+
+        // 이미지 파일 삭제
+        if (recipe.getImageUrl() != null) {
+            //해당 레시피가 이미지를 가지고 있다면 (= imageUrl이 null이 아닐 경우) → 이미지 삭제 로직 실행
+            Path imagePath = Paths.get(recipe.getImageUrl().substring(1)); // "/uploads/..." → "uploads/..."
+            try {
+                Files.deleteIfExists(imagePath);
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 파일 삭제 실패: " + e.getMessage());
+            }
+        }
+        recipeRepository.delete(recipe); //마지막으로 DB에서 해당 레시피를 삭제합니다.
     }
+    //실제로 서버 디렉토리에 있는 이미지를 물리적으로 삭제.
+    //deleteIfExists는 이미지 파일이 존재하면 삭제, 존재하지 않아도 예외 없이 넘어감.
+    //단, 삭제 도중 오류가 생기면 예외로 던져서 사용자에게 알려줌.
 
     //레시피 제목에 특정 키워드가 포함된 경우 그 레시피들의 목록을 검색해서 응답하는 기능
     public RecipeSearchResponseDto searchRecipesByTitle(String title) {
